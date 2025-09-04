@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,20 +8,11 @@
 <meta name="theme-color" content="#071225">
 <style>
 :root{
-  --bg:#0a0f1a;
-  --panel:#0c1528;
-  --card:#0e1830;
-  --ink:#eef3ff;
-  --muted:#9fb0d1;
-  --brand:#0bb3a6;
-  --accent:#79ffd6;
-  --danger:#e33b3b;
-  --border:#162344;
-  --radius:18px;
-  --shadow:0 16px 42px rgba(0,0,0,.45);
+  --bg:#0a0f1a;--panel:#0c1528;--card:#0e1830;--ink:#eef3ff;--muted:#9fb0d1;
+  --brand:#0bb3a6;--accent:#79ffd6;--danger:#e33b3b;--border:#162344;
+  --radius:18px;--shadow:0 16px 42px rgba(0,0,0,.45)
 }
-*{box-sizing:border-box}
-html,body{height:100%}
+*{box-sizing:border-box}html,body{height:100%}
 body{margin:0;background:
 radial-gradient(1200px 600px at -10% 0%, #0f2147 0%, transparent 60%),
 radial-gradient(900px 600px at 120% 120%, #10213b 0%, transparent 60%),
@@ -41,6 +33,7 @@ linear-gradient(135deg,#0b1d3b,#0a1630)}
 .btn{appearance:none;border:0;background:var(--brand);color:#05131f;padding:12px 16px;border-radius:14px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(11,179,166,.35)}
 .btn:active{transform:translateY(1px)}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--border);box-shadow:none}
+.err{color:#ffd1d1;background:#3a0e14;border:1px solid #5a1b22;padding:10px;border-radius:12px;font-size:13px}
 .app{height:100vh;display:grid;grid-template-rows:auto 1fr}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel);border-bottom:1px solid var(--border);padding:10px 16px}
 .brand2{display:flex;align-items:center;gap:10px}
@@ -95,10 +88,11 @@ conic-gradient(from 30deg,#0bb3a6 0 30%,#79ffd6 30% 45%,#173a8a 45% 70%,#0bb3a6 
       </div>
     </div>
     <div class="badge">Revision 1.0 • Effective Sep 2025</div>
-    <input id="pass" class="input" type="password" placeholder="Enter access code"/>
+    <div id="err" class="err hide">Incorrect code</div>
+    <input id="pass" class="input" type="password" placeholder="Enter access code" autocomplete="off" inputmode="text"/>
     <div style="display:flex;gap:10px">
-      <button id="unlock" class="btn">Unlock</button>
-      <button id="clearpass" class="btn ghost">Clear</button>
+      <button id="unlock" class="btn" type="button">Unlock</button>
+      <button id="clearpass" class="btn ghost" type="button">Clear</button>
     </div>
     <div class="sub">Aviate • Navigate • Communicate • Checklist</div>
   </div>
@@ -117,8 +111,8 @@ conic-gradient(from 30deg,#0bb3a6 0 30%,#79ffd6 30% 45%,#173a8a 45% 70%,#0bb3a6 
       <input id="search" class="input search" placeholder="Search scenarios or keywords: fire, stall, gear, pressurization"/>
     </div>
     <div class="toolbar">
-      <button id="backToGrid" class="btn ghost hide">All Scenarios</button>
-      <button id="lock" class="btn ghost">Lock</button>
+      <button id="backToGrid" class="btn ghost hide" type="button">All Scenarios</button>
+      <button id="lock" class="btn ghost" type="button">Lock</button>
     </div>
   </div>
 
@@ -127,7 +121,7 @@ conic-gradient(from 30deg,#0bb3a6 0 30%,#79ffd6 30% 45%,#173a8a 45% 70%,#0bb3a6 
       <div class="group-title">Categories</div>
       <div id="cats" class="catlist"></div>
       <div class="group-title">Reference</div>
-      <button class="catbtn" data-jump="intro"><div class="caticon">ℹ️</div><div>Intro</div></button>
+      <button class="catbtn" data-jump="intro" type="button"><div class="caticon">ℹ️</div><div>Intro</div></button>
     </aside>
 
     <section class="stage">
@@ -157,8 +151,7 @@ conic-gradient(from 30deg,#0bb3a6 0 30%,#79ffd6 30% 45%,#173a8a 45% 70%,#0bb3a6 
 </div>
 
 <script>
-const PASS_HASH="f195271371b6261f40ea223e33350509a0c59839e262e3a0b35fcad76540a7e9";
-const PASS_PLAIN="swaluvcrew";
+const PASS="swaluvcrew";
 
 const chapters=[
   {id:"intro",title:"INTRO",tags:["about","overview","policy"],blocks:[
@@ -471,6 +464,7 @@ const passInput=document.getElementById("pass");
 const unlockBtn=document.getElementById("unlock");
 const clearPassBtn=document.getElementById("clearpass");
 const lockBtn=document.getElementById("lock");
+const errBox=document.getElementById("err");
 const tilesDiv=document.getElementById("tiles");
 const catsDiv=document.getElementById("cats");
 const searchBox=document.getElementById("search");
@@ -486,30 +480,33 @@ const toggleImmediate=document.getElementById("toggleImmediate");
 let activeCat="all";
 let currentId=null;
 
-function ab2hex(buffer){const bytes=new Uint8Array(buffer);return Array.from(bytes).map(b=>b.toString(16).padStart(2,"0")).join("")}
-async function sha256(str){const enc=new TextEncoder();const d=(self.crypto&&crypto.subtle)||null;if(!d) return null;const buf=await d.digest("SHA-256",enc.encode(str));return ab2hex(buf)}
-async function tryUnlock(){
-  const v=passInput.value.trim();
-  if(!v) return;
-  if(v===PASS_PLAIN){enter();return}
-  const h=await sha256(v);
-  if(h===PASS_HASH){enter();return}
-  passInput.value="";passInput.placeholder="Incorrect code"
-}
 function enter(){
   gate.classList.add("hide");
   app.classList.remove("hide");
+  errBox.classList.add("hide");
   renderCategories();
   renderTiles();
   searchBox.value="";
 }
+function showErr(msg){
+  errBox.textContent=msg||"Incorrect code";
+  errBox.classList.remove("hide");
+}
+function tryUnlock(){
+  const v=(passInput.value||"").trim();
+  if(!v){showErr("Enter access code");return}
+  if(v===PASS){enter();return}
+  showErr("Incorrect code");
+  passInput.value="";
+  passInput.focus();
+}
 unlockBtn.addEventListener("click",tryUnlock);
+clearPassBtn.addEventListener("click",()=>{passInput.value="";errBox.classList.add("hide");passInput.focus()});
 passInput.addEventListener("keydown",e=>{if(e.key==="Enter")tryUnlock()});
-clearPassBtn.addEventListener("click",()=>{passInput.value="";passInput.focus()});
 lockBtn.addEventListener("click",()=>{location.reload()});
 
 function renderCategories(){
-  catsDiv.innerHTML=categories.map(c=>`<button class="catbtn ${c.id===activeCat?"active":""}" data-cat="${c.id}">
+  catsDiv.innerHTML=categories.map(c=>`<button class="catbtn ${c.id===activeCat?"active":""}" data-cat="${c.id}" type="button">
     <div class="caticon">${c.icon}</div><div>${c.name}</div>
   </button>`).join("");
   catsDiv.querySelectorAll(".catbtn").forEach(b=>b.addEventListener("click",()=>{
@@ -523,7 +520,7 @@ function getScenarioChapters(){
 }
 function renderTiles(){
   tilesDiv.innerHTML="";
-  const q=searchBox.value.trim().toLowerCase();
+  const q=(searchBox.value||"").trim().toLowerCase();
   const cat=categories.find(x=>x.id===activeCat);
   const allowed=cat?new Set(cat.ids):new Set();
   const data=getScenarioChapters().filter(c=>{
@@ -537,13 +534,13 @@ function renderTiles(){
   data.sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
   data.forEach(c=>{
     const tag=categories.find(ct=>ct.ids.includes(c.id))?.name||"Scenario";
-    const html=`<div class="tile" data-open="${c.id}">
+    const html=`<button class="tile" data-open="${c.id}" type="button">
       <div class="thead">
         <div class="pill">${tag}</div>
         <div class="tag">${(c.tags||[]).join(", ")||"—"}</div>
       </div>
       <div class="tname">${c.title}</div>
-    </div>`;
+    </button>`;
     tilesDiv.insertAdjacentHTML("beforeend",html);
   });
   tilesDiv.querySelectorAll("[data-open]").forEach(t=>t.addEventListener("click",()=>openProcedure(t.getAttribute("data-open"))));
@@ -611,8 +608,8 @@ function renderProcedureSections(c,immediateOnlyMode){
     }
     const meta=`<div class="kv">${pillKV("Chapter",c.title)}${pillKV("Tags",(c.tags||[]).join(", ")||"—")}</div>
     <div class="btnrow">
-      <button class="btn ghost" id="resetChecks">Reset Checks</button>
-      <button class="btn ghost" id="backToScans">Back to Scenarios</button>
+      <button class="btn ghost" id="resetChecks" type="button">Reset Checks</button>
+      <button class="btn ghost" id="backToScans" type="button">Back to Scenarios</button>
     </div>`;
     sections.insertAdjacentHTML("beforeend",makeCard("Reference",meta,"half"));
   }
@@ -648,3 +645,4 @@ renderTiles();
 </script>
 </body>
 </html>
+```

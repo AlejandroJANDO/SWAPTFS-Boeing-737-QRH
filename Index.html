@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +21,7 @@ color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe U
 strong,h1,h2,h3,h4,h5,h6,.title,.tname{color:var(--ink)}
 .hide{display:none}
 
-/* FIX: make the gate a real overlay so it disappears without any scrolling */
+/* Fullscreen password overlay */
 .gate{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:28px;background:rgba(7,13,24,.96);backdrop-filter:saturate(130%) blur(2px)}
 .card-auth{width:100%;max-width:460px;background:var(--panel);border:1px solid var(--border);border-radius:24px;padding:24px 20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
 .brandrow{display:flex;align-items:center;gap:12px}
@@ -39,6 +38,7 @@ linear-gradient(135deg,#0b1d3b,#0a1630)}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--border);box-shadow:none}
 .err{color:#ffd1d1;background:#3a0e14;border:1px solid #5a1b22;padding:10px;border-radius:12px;font-size:13px}
 
+/* App shell */
 .app{height:100vh;display:grid;grid-template-rows:auto 1fr}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel);border-bottom:1px solid var(--border);padding:10px 16px}
 .brand2{display:flex;align-items:center;gap:10px}
@@ -99,7 +99,7 @@ conic-gradient(from 30deg,#0bb3a6 0 30%,#79ffd6 30% 45%,#173a8a 45% 70%,#0bb3a6 
     </div>
     <div class="badge">Revision 1.0 • Effective Sep 2025</div>
     <div id="err" class="err hide">Incorrect code</div>
-    <input id="pass" class="input" type="password" placeholder="Enter access code" autocomplete="off" inputmode="text"/>
+    <input id="pass" class="input" type="password" placeholder="Enter access code" autocomplete="off" inputmode="text" autofocus/>
     <div style="display:flex;gap:10px">
       <button id="unlock" class="btn" type="button">Unlock</button>
       <button id="clearpass" class="btn ghost" type="button">Clear</button>
@@ -109,7 +109,7 @@ conic-gradient(from 30deg,#0bb3a6 0 30%,#79ffd6 30% 45%,#173a8a 45% 70%,#0bb3a6 
 </div>
 
 <!-- APP -->
-<div id="app" class="app">
+<div id="app" class="app" aria-hidden="true">
   <div class="topbar">
     <div class="brand2">
       <div class="mark2"></div>
@@ -162,13 +162,11 @@ conic-gradient(from 30deg,#0bb3a6 0 30%,#79ffd6 30% 45%,#173a8a 45% 70%,#0bb3a6 
 </div>
 
 <script>
-/* Plain-text password per your request */
+/* Plain-text password as requested */
 const PASS="swaluvcrew";
 
-/* Data (unchanged content) */
-const chapters=[ /* --- same chapters as before, trimmed for brevity in this snippet --- */ ];
-/* Full chapters content inserted below to keep file self-contained */
-const fullChapters = [
+/* ----- Data: QRH Chapters ----- */
+const chapters = [
   {id:"intro",title:"INTRO",tags:["about","overview","policy"],blocks:[
     {type:"kv",items:[["Aircraft","Boeing 737NG (PTFS)"],["Document","Quick Reference Handbook (QRH)"],["Revision","1.0"],["Effective","September 2025"]]},
     {type:"text",html:"This Quick Reference Handbook provides standardized procedures for handling emergencies and abnormal situations in the PTFS Boeing 737NG. It is adapted from the real Boeing 737NG QRH but streamlined to reflect PTFS operations. The goal is to deliver clear, concise guidance for the most relevant scenarios while maintaining the professionalism and structure of real-world airline operations."},
@@ -378,9 +376,8 @@ const fullChapters = [
     ]}
   ]}
 ];
-/* use full set */
-const chapters = fullChapters;
 
+/* Categories */
 const categories=[
   {id:"all",name:"All Scenarios",icon:"⭐",ids:["eng1","eng2","dual","surge","fire","gear","fctl","depr","evac"]},
   {id:"eng",name:"Engines",icon:"🛠️",ids:["eng1","eng2","dual","surge","fire"]},
@@ -389,6 +386,7 @@ const categories=[
   {id:"evac",name:"Evacuation",icon:"🚪",ids:["evac"]}
 ];
 
+/* DOM refs */
 const gate=document.getElementById("gate");
 const app=document.getElementById("app");
 const passInput=document.getElementById("pass");
@@ -411,16 +409,16 @@ const toggleImmediate=document.getElementById("toggleImmediate");
 let activeCat="all";
 let currentId=null;
 
-/* ---- LOGIN ---- */
+/* ----- LOGIN ----- */
 function enter(){
-  // fade out overlay for a clean switch
   gate.style.opacity="1";
   gate.style.transition="opacity .18s ease";
   requestAnimationFrame(()=>{ gate.style.opacity="0"; });
   setTimeout(()=>{
     gate.classList.add("hide");
     gate.style.display="none";
-    window.scrollTo({top:0,behavior:"instant"});
+    app.removeAttribute("aria-hidden");
+    window.scrollTo(0,0);
   },180);
   errBox.classList.add("hide");
   renderCategories();
@@ -440,11 +438,11 @@ function tryUnlock(){
   passInput.focus();
 }
 unlockBtn.addEventListener("click",tryUnlock);
-clearPassBtn.addEventListener("click",()=>{passInput.value="";errBox.classList.add("hide");passInput.focus()});
 passInput.addEventListener("keydown",e=>{if(e.key==="Enter")tryUnlock()});
+clearPassBtn.addEventListener("click",()=>{passInput.value="";errBox.classList.add("hide");passInput.focus()});
 lockBtn.addEventListener("click",()=>{location.reload()});
 
-/* ---- UI RENDERING ---- */
+/* ----- RENDERING ----- */
 function renderCategories(){
   catsDiv.innerHTML=categories.map(c=>`<button class="catbtn ${c.id===activeCat?"active":""}" data-cat="${c.id}" type="button">
     <div class="caticon">${c.icon}</div><div>${c.name}</div>
@@ -580,10 +578,9 @@ immediateOnly.addEventListener("change",()=>{
 
 searchBox.addEventListener("input",()=>renderTiles());
 
-/* Pre-render (content is hidden under the fixed overlay until unlocked) */
+/* Pre-render (hidden by overlay until unlocked) */
 renderCategories();
 renderTiles();
 </script>
 </body>
 </html>
-```

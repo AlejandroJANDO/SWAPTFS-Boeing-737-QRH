@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SWAPTFS • B737 QRH</title>
+<meta name="theme-color" content="#001f46">
+<style>
+:root{
+  --bg:#0b1220;
+  --panel:#0f1a32;
+  --card:#0d1530;
+  --ink:#eaf1ff;
+  --muted:#9fb0d1;
+  --brand:#001f46;
+  --accent:#f9ba00;
+  --danger:#c62828;
+  --border:#1e2a48;
+  --radius:18px;
+  --shadow:0 14px 36px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:linear-gradient(180deg,#0b1220 0%,#0a1020 60%,#071027 100%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.container{display:grid;grid-template-columns:320px 1fr;gap:18px;height:100vh;padding:18px}
+.left{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
+.right{display:flex;flex-direction:column;gap:18px;overflow:hidden}
+.header{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;border-radius:10px;background:conic-gradient(from 120deg,#f9ba00 0 40%,#001f46 40% 65%,#e21a1a 65% 100%)}
+.title{font-size:18px;font-weight:800;line-height:1.1}
+.sub{font-size:12px;color:var(--muted)}
+.badge{background:rgba(249,186,0,.12);color:var(--accent);border:1px solid rgba(249,186,0,.35);padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px;letter-spacing:.25px}
+button{appearance:none;border:0;background:var(--brand);color:#fff;padding:10px 14px;border-radius:12px;font-weight:700;cursor:pointer;transition:.2s transform,.2s opacity;box-shadow:0 8px 18px rgba(0,31,70,.35)}
+button:active{transform:translateY(1px)}
+button.ghost{background:transparent;border:1px solid var(--border);color:var(--ink);box-shadow:none}
+.input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--ink);outline:none}
+.group-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.18em;margin-top:6px}
+.nav{display:flex;flex-direction:column;gap:10px;overflow:auto}
+.section{display:flex;flex-direction:column;gap:8px}
+.navbtn{width:100%;text-align:left;padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--ink);font-weight:700;cursor:pointer}
+.navbtn.active{outline:3px solid rgba(249,186,0,.22);border-color:rgba(249,186,0,.55);background:rgba(249,186,0,.06)}
+.quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.qbtn{padding:12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.02);color:var(--ink);font-weight:700;cursor:pointer;text-align:left}
+.main{flex:1;min-height:0;display:grid;grid-template-rows:auto 1fr;gap:12px}
+.content{overflow:auto;border:1px solid var(--border);background:var(--panel);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.cards{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
+.card{grid-column:span 12;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+@media(min-width:900px){.card.half{grid-column:span 6}.card.third{grid-column:span 4}}
+.card h3{margin:0 0 8px 0;font-size:16px}
+.kv{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.kv .pill{border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px}
+.list{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;align-items:flex-start;gap:10px}
+.chk{min-width:22px;height:22px;border-radius:8px;border:2px solid rgba(255,255,255,.22);display:grid;place-items:center;cursor:pointer;user-select:none}
+.chk.done{background:linear-gradient(180deg,#22c55e,#16a34a);border-color:transparent}
+.step p{margin:0;line-height:1.35}
+.tag{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.sticky{position:sticky;top:0;z-index:3;background:linear-gradient(180deg,rgba(10,17,35,.96),rgba(10,17,35,.86));border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px}
+.sticky h2{margin:0 0 8px 0;font-size:15px}
+.login-wrap{height:100vh;display:grid;place-items:center;padding:18px}
+.login{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.logo2{width:48px;height:48px;border-radius:12px;background:radial-gradient(120px 120px at -20% -20%, #2a4ac7 0%, transparent 60%), radial-gradient(120px 120px at 120% 120%, #e21a1a 0%, transparent 60%), linear-gradient(135deg,#102568,#0d1a4a)}
+.small{font-size:12px;color:var(--muted)}
+.hide{display:none}
+hr.sep{border:0;border-top:1px solid var(--border);margin:8px 0}
+</style>
+</head>
+<body>
+<div id="gate" class="login-wrap">
+  <div class="login">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="logo2"></div>
+      <div>
+        <div class="title">SWAPTFS • B737 QRH</div>
+        <div class="sub">Restricted: Pilot Portal</div>
+      </div>
+    </div>
+    <div class="badge">Revision 1.0 • Effective Sep 2025</div>
+    <input id="pass" class="input" type="password" placeholder="Enter access code"/>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button id="unlock">Unlock</button>
+    </div>
+    <hr class="sep"/>
+    <div class="small">Use good judgment. Aviate • Navigate • Communicate • Checklist.</div>
+  </div>
+</div>
+
+<div id="app" class="container hide">
+  <aside class="left">
+    <div class="section">
+      <input id="search" class="input" placeholder="Search: fire, stall, gear, depressurization"/>
+    </div>
+    <div class="section">
+      <div class="group-title">Quick Action Index</div>
+      <div id="quick" class="quick-grid"></div>
+    </div>
+    <div class="section">
+      <div class="group-title">Intro</div>
+      <button class="navbtn" data-id="intro">INTRO</button>
+      <button class="navbtn" data-id="index">QUICK ACTION INDEX</button>
+    </div>
+    <div class="section">
+      <div class="group-title">Engines</div>
+      <button class="navbtn" data-id="eng1">ENG 1 FAIL</button>
+      <button class="navbtn" data-id="eng2">ENG 2 FAIL</button>
+      <button class="navbtn" data-id="dual">DUAL ENGINE FAIL</button>
+      <button class="navbtn" data-id="surge">ENGINE SURGE / STALL</button>
+      <button class="navbtn" data-id="fire">ENGINE FIRE / SEVERE DAMAGE</button>
+    </div>
+    <div class="section">
+      <div class="group-title">Systems</div>
+      <button class="navbtn" data-id="gear">GEAR FAILURE</button>
+      <button class="navbtn" data-id="fctl">FLIGHT CONTROL FAILURE</button>
+    </div>
+    <div class="section">
+      <div class="group-title">Pressurization</div>
+      <button class="navbtn" data-id="depr">CABIN DEPRESSURIZATION</button>
+    </div>
+    <div class="section">
+      <div class="group-title">Evacuation</div>
+      <button class="navbtn" data-id="evac">EMERGENCY EVACUATION</button>
+    </div>
+    <div class="section">
+      <button id="logout" class="ghost">Lock</button>
+    </div>
+  </aside>
+
+  <main class="right">
+    <div class="header">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <div class="title">SWAPTFS • B737 QRH</div>
+          <div class="sub">Neat, organized, and fast to use</div>
+        </div>
+      </div>
+      <div class="badge">PTFS Ops</div>
+    </div>
+
+    <section class="main">
+      <div id="sticky" class="sticky hide">
+        <h2>Immediate Actions</h2>
+        <div id="stickyList" class="list"></div>
+      </div>
+      <div class="content">
+        <div id="cards" class="cards"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const PASS_HASH="f195271371b6261f40ea223e33350509a0c59839e262e3a0b35fcad76540a7e9";
+const chapters=[
+  {
+    id:"intro",
+    title:"INTRO",
+    tags:["about","overview","policy"],
+    blocks:[
+      {type:"kv",items:[
+        ["Aircraft","Boeing 737NG (PTFS)"],
+        ["Document","Quick Reference Handbook (QRH)"],
+        ["Revision","1.0"],
+        ["Effective","September 2025"]
+      ]},
+      {type:"text",html:"This Quick Reference Handbook provides standardized procedures for handling emergencies and abnormal situations in the PTFS Boeing 737NG. It is adapted from the real Boeing 737NG QRH but streamlined to reflect PTFS operations. The goal is to deliver clear, concise guidance for the most relevant scenarios while maintaining the professionalism and structure of real-world airline operations."},
+      {type:"text",html:"Please refer to FCOM Section 2.1 for more QRHs and Quick Reference Handbooks information."},
+      {type:"text",html:"Any questions, comments, or errors? Contact <strong>axitheaviator</strong> on Discord."},
+      {type:"text",html:"Signed,<br><strong>axitheaviator</strong><br>Chief Executive Officer<br><span class='tag'>southwestptfs.com</span>"}
+    ]
+  },
+  {
+    id:"index",
+    title:"QUICK ACTION INDEX",
+    tags:["index","menu","home"],
+    blocks:[
+      {type:"quick",items:[
+        ["ENG 1 FAIL","eng1"],
+        ["ENG 2 FAIL","eng2"],
+        ["DUAL ENGINE FAIL","dual"],
+        ["ENGINE SURGE / STALL","surge"],
+        ["ENGINE FIRE / SEVERE DAMAGE","fire"],
+        ["GEAR FAILURE (EXTEND/RETRACT)","gear"],
+        ["FLIGHT CONTROL FAILURE (HYDRAULIC LOSS)","fctl"],
+        ["CABIN DEPRESSURIZATION","depr"],
+        ["EMERGENCY EVACUATION","evac"]
+      ]}
+    ]
+  },
+  {
+    id:"eng1",
+    title:"ENG 1 FAIL",
+    tags:["engine","fail","left","single engine","rto","v1"],
+    immediate:[
+      "PF: Maintain aircraft control (pitch, attitude, heading).",
+      "PM: Call out: “Engine 1 Fail.”",
+      "Thrust Lever (Engine 1): IDLE",
+      "Engine Start Lever (Engine 1): CUTOFF"
+    ],
+    checklist:[
+      "Fuel Pumps (Left Side): OFF",
+      "Crossfeed: AS REQUIRED",
+      "Evaluate if a restart is possible",
+      "If engine fire/severe damage is suspected → Refer to Engine Fire / Severe Damage"
+    ],
+    rolesPF:"Flies the aircraft, commands checklist execution, monitors airspeed, and climbs.",
+    rolesPM:"Reads the checklist, verifies, and executes when directed.",
+    notes:[
+      {h:"Before V1 (RTO)",items:[
+        "A Rejected Takeoff (RTO) is permitted if runway length, surface conditions, and aircraft performance allow.",
+        "PF calls “Abort.” PM assists with thrust reduction, spoilers, and braking."
+      ]},
+      {h:"RTO Approval Conditions",items:[
+        "Sufficient runway remaining to stop.",
+        "Dry or otherwise suitable runway surface.",
+        "Aircraft under control; no asymmetric braking/steering loss.",
+        "No obstacles or hazards ahead."
+      ]},
+      {h:"After V1",items:[
+        "Continue the takeoff.",
+        "PF maintains directional control, rotates at VR, climbs on one engine.",
+        "Run QRH once safely airborne."
+      ]},
+      {h:"Approach",items:[
+        "Go-around if unstable.",
+        "Plan a longer, more gradual single-engine approach; verify runway length.",
+        "Use autopilot if available until short final to reduce workload.",
+        "Maintain higher thrust on operative engine; brief degraded go-around.",
+        "PM closely monitors instruments and calls deviations early."
+      ]},
+      {h:"Short Final",items:[
+        "Stabilized by 500 ft AGL (VMC) / 1,000 ft AGL (IMC).",
+        "Gear down 3 green; landing flaps set.",
+        "Maintain centerline with rudder to counter asymmetric thrust.",
+        "Slightly higher Vapp acceptable; avoid excessive speed."
+      ]},
+      {h:"Landing",items:[
+        "Touch down in the first third; no long landings.",
+        "Operative engine IDLE at touchdown.",
+        "Maintain centerline with rudder, brake smoothly; expect longer stop.",
+        "Single-engine go-around only if necessary.",
+        "If evacuation required, see EMERGENCY EVACUATION."
+      ]}
+    ]
+  },
+  {
+    id:"eng2",
+    title:"ENG 2 FAIL",
+    tags:["engine","fail","right","single engine","rto","v1"],
+    immediate:[
+      "PF: Maintain aircraft control (pitch, attitude, heading).",
+      "PM: Call out: “Engine 2 Fail.”",
+      "Thrust Lever (Engine 2): IDLE",
+      "Engine Start Lever (Engine 2): CUTOFF"
+    ],
+    checklist:[
+      "Fuel Pumps (Right Side): OFF",
+      "Crossfeed: AS REQUIRED",
+      "Evaluate if a restart is possible",
+      "If engine fire/severe damage is suspected → Refer to Engine Fire / Severe Damage"
+    ],
+    rolesPF:"Flies the aircraft, commands checklist execution, monitors airspeed, and climbs.",
+    rolesPM:"Reads the checklist, verifies, and executes when directed.",
+    notes:[
+      {h:"Before V1 (RTO)",items:[
+        "RTO permitted if runway/conditions/performance allow.",
+        "PF “Abort.” PM handles spoilers and braking."
+      ]},
+      {h:"RTO Approval Conditions",items:[
+        "Sufficient runway remaining.",
+        "Suitable surface.",
+        "Aircraft under control.",
+        "No hazards ahead."
+      ]},
+      {h:"After V1",items:[
+        "Continue takeoff, rotate at VR, climb on one engine.",
+        "Run QRH once airborne."
+      ]},
+      {h:"Approach",items:[
+        "Go-around if unstable.",
+        "Plan single-engine profile; verify runway length.",
+        "Use autopilot if available until short final.",
+        "Higher thrust on operative engine; brief reduced go-around.",
+        "PM monitors and calls deviations."
+      ]},
+      {h:"Short Final",items:[
+        "Stabilized by 500 ft (VMC) / 1,000 ft (IMC).",
+        "Gear down 3 green; landing flaps set.",
+        "Maintain centerline with rudder.",
+        "Avoid excessive speed."
+      ]},
+      {h:"Landing",items:[
+        "Touch down in first third.",
+        "Operative engine IDLE at touchdown.",
+        "Brake smoothly; longer stop expected.",
+        "Go-around only if necessary.",
+        "If evacuation required, see EMERGENCY EVACUATION."
+      ]}
+    ]
+  },
+  {
+    id:"dual",
+    title:"DUAL ENGINE FAIL",
+    tags:["dual","both engines","flameout","glide","apulstart","restart"],
+    immediate:[
+      "PF: Maintain control; pitch for best glide (≈250–300 kts PTFS).",
+      "PM: Call out: “Dual Engine Failure.”",
+      "Start Switches (BOTH): CONT",
+      "Thrust Levers (BOTH): IDLE",
+      "Engine Start Levers (BOTH): CUTOFF → then IDLE (attempt relight)"
+    ],
+    checklist:[
+      "APU: START",
+      "Fuel Pumps: ON",
+      "Crossfeed: AS REQUIRED",
+      "Attempt windmill restart if speed allows",
+      "If restart fails: prepare for diversion, forced landing, or ditching"
+    ],
+    rolesPF:"Controls glide; selects nearest safe runway or ditching area.",
+    rolesPM:"Runs restart attempts, monitors speed/altitude, communicates with ATC.",
+    notes:[
+      {h:"Before V1 (RTO)",items:[
+        "RTO permitted if runway/conditions/performance allow.",
+        "PF “Abort.” PM assists with spoilers and braking."
+      ]},
+      {h:"After V1",items:[
+        "Continue takeoff; climb will be severely compromised.",
+        "PF sets glide attitude; PM calls speed/indications.",
+        "Begin restart attempts when safe; if unsuccessful, plan immediate return/landing."
+      ]},
+      {h:"Approach",items:[
+        "If unstable, commit to forced landing; go-around not possible without power.",
+        "Commit early to runway/area; confirm stopping distance.",
+        "Configure early; avoid last-second changes.",
+        "PF holds glide (≈280–250 kts PTFS). PM runs restart until landing committed."
+      ]},
+      {h:"Short Final",items:[
+        "Fully configured before short final.",
+        "Use pitch to control path; no thrust available.",
+        "Establish crosswind corrections early; stabilize speed."
+      ]},
+      {h:"Landing Roll",items:[
+        "No reverse thrust; expect longer stop.",
+        "Use spoilers if available; apply maximum braking early.",
+        "Prepare for runway overrun or off-field landing.",
+        "Initiate evacuation as required."
+      ]}
+    ]
+  },
+  {
+    id:"surge",
+    title:"ENGINE SURGE / STALL",
+    tags:["surge","stall","bang","pop","smoke","fluctuation"],
+    immediate:[
+      "PF: Maintain control.",
+      "PM: Call out surge/stall.",
+      "Thrust Lever (affected): IDLE"
+    ],
+    checklist:[
+      "If condition clears: cautiously advance thrust.",
+      "If persists: execute ENG FAIL checklist."
+    ],
+    rolesPF:"",
+    rolesPM:"",
+    notes:[
+      {h:"Considerations",items:[
+        "On approach: assess go-around to stabilize before corrective actions.",
+        "Before V1: consider RTO if runway/conditions permit.",
+        "After V1: continue takeoff; treat as engine failure.",
+        "For landing: follow single-engine approach guidance."
+      ]}
+    ]
+  },
+  {
+    id:"fire",
+    title:"ENGINE FIRE / SEVERE DAMAGE",
+    tags:["fire","severe damage","vibration","bang"],
+    immediate:[
+      "PF: Maintain control.",
+      "PM: “Engine Fire / Severe Damage [side]”.",
+      "Thrust Lever (affected): IDLE",
+      "Engine Start Lever (affected): CUTOFF",
+      "Engine Fire Switch (affected): PULL",
+      "Engine Fire Switch: Rotate to discharge"
+    ],
+    checklist:[
+      "If fire light remains: rotate to use second bottle.",
+      "Fuel Pumps (affected): OFF",
+      "Crossfeed: AS REQUIRED",
+      "Plan for single-engine ops (see ENG FAIL).",
+      "Divert to the nearest suitable airport."
+    ],
+    rolesPF:"Maintains flight path; commands execution.",
+    rolesPM:"Runs memory items and fire drill; confirms shutdown/isolation; communicates with ATC.",
+    notes:[
+      {h:"References",items:[
+        "For takeoff/landing and single-engine profiles, see ENG 1 FAIL / ENG 2 FAIL."
+      ]}
+    ]
+  },
+  {
+    id:"gear",
+    title:"GEAR FAILURE (EXTEND/RETRACT)",
+    tags:["gear","landing gear","unsafe","alternate extension","belly landing"],
+    immediate:[
+      "PF: Maintain control; do not exceed 250 kts.",
+      "PM: “Gear Failure/Unsafe”."
+    ],
+    checklist:[
+      "Alternate Gear Extension: PULL",
+      "Confirm three green (down/locked)",
+      "If unsafe/partial: prepare for belly or asymmetrical landing",
+      "Brief crew and passengers",
+      "Notify ATC of emergency landing"
+    ],
+    rolesPF:"Fly the approach/landing.",
+    rolesPM:"Run checklist, confirm indications, communicate with ATC, prepare cabin.",
+    notes:[
+      {h:"Belly Landing",items:[
+        "Flaps 15 (PTFS Flaps 3).",
+        "Touch down smoothly in TDZ.",
+        "Cut engines at touchdown.",
+        "Evacuate per EMERGENCY EVACUATION."
+      ]},
+      {h:"Asymmetrical Gear",items:[
+        "Land on the extended-gear side.",
+        "Expect veer toward failed side; maintain rudder through rollout.",
+        "Use differential braking if possible."
+      ]},
+      {h:"Fails to Retract",items:[
+        "Non-critical; note drag/fuel burn.",
+        "Plan reduced climb/cruise performance.",
+        "Continue or return at Captain’s discretion."
+      ]}
+    ]
+  },
+  {
+    id:"fctl",
+    title:"FLIGHT CONTROL FAILURE (HYDRAULIC LOSS)",
+    tags:["flight control","hydraulic","jam","spoilers","flaps"],
+    immediate:[
+      "PF: Maintain control with available inputs.",
+      "PM: “Flight control failure.”",
+      "AUTOPILOT: DISENGAGE (if engaged)"
+    ],
+    checklist:[
+      "Identify inoperative controls.",
+      "Use remaining surfaces (rudder trim, spoilers).",
+      "If flaps/slats affected: land in current flap setting or use alternate extension.",
+      "If spoilers inoperative: expect longer landing distance/off-field possibility.",
+      "Reduce speed to maintain controllability.",
+      "Avoid complex maneuvers."
+    ],
+    rolesPF:"Fly with available surfaces; manage approach/takeoff.",
+    rolesPM:"Run checklist, monitor speed/attitude, communicate with ATC, brief crew.",
+    notes:[
+      {h:"Considerations",items:[
+        "Land at the nearest suitable airport.",
+        "If severe loss of control: declare emergency; prepare for evacuation.",
+        "If evacuation required, see EMERGENCY EVACUATION."
+      ]}
+    ]
+  },
+  {
+    id:"depr",
+    title:"CABIN DEPRESSURIZATION",
+    tags:["pressurization","oxygen","emergency descent"],
+    immediate:[
+      "Oxygen Masks: ON",
+      "Crew Communications: ESTABLISH",
+      "PF: Initiate Emergency Descent",
+      "PM: “Cabin Depressurization”"
+    ],
+    checklist:[
+      "Seatbelt Sign: ON",
+      "Thrust Levers: IDLE",
+      "Speed Brakes: UP",
+      "Descend to 10,000 ft (PTFS 1,500 ft) or MSA.",
+      "Notify ATC of emergency descent.",
+      "Prepare to divert to nearest suitable airport."
+    ],
+    rolesPF:"Immediate descent; maintain control; command actions.",
+    rolesPM:"Run checklist; monitor profile; communicate with ATC; brief crew.",
+    notes:[
+      {h:"During Cruise",items:[
+        "Initiate descent immediately.",
+        "PF pitches down to control speed (≈300–280 kts).",
+        "PM runs checklists and informs cabin."
+      ]},
+      {h:"Approach/Landing",items:[
+        "If below 10,000 ft, continue to runway.",
+        "Keep oxygen on if required.",
+        "Expect high workload on final; arrange medical/evac as needed."
+      ]}
+    ]
+  },
+  {
+    id:"evac",
+    title:"EMERGENCY EVACUATION",
+    tags:["evacuation","fire","smoke","ditch","abandon aircraft"],
+    immediate:[
+      "Parking Brake: SET",
+      "Engine Start Levers (both): CUTOFF",
+      "ELT (if available): ON",
+      "Flaps (if available): 40 (PTFS 5/5)",
+      "Announce: “Evacuate, Evacuate, Evacuate!”"
+    ],
+    checklist:[
+      "Open emergency exits.",
+      "Direct passengers and crew to evacuate quickly.",
+      "Leave all baggage behind.",
+      "Use slides/exits; otherwise direct to safe ground.",
+      "Move at least 500 ft upwind once outside."
+    ],
+    rolesPF:"",
+    rolesPM:"",
+    notes:[
+      {h:"Additional Considerations",items:[
+        "Captain orders evacuation unless incapacitated.",
+        "Assess exterior conditions before opening exits.",
+        "Belly/gear collapse: evacuate immediately after stop.",
+        "Crew leads and assists passengers.",
+        "Ditching: ensure life vests on; inflate outside.",
+        "After majority out: check lavatory; ensure all evacuated.",
+        "Retrieve necessary documents for investigation if safe."
+      ]}
+    ]
+  }
+];
+
+const app=document.getElementById("app");
+const gate=document.getElementById("gate");
+const passInput=document.getElementById("pass");
+const unlockBtn=document.getElementById("unlock");
+const logoutBtn=document.getElementById("logout");
+const navBtns=()=>Array.from(document.querySelectorAll(".navbtn"));
+const quickDiv=document.getElementById("quick");
+const cardsDiv=document.getElementById("cards");
+const sticky=document.getElementById("sticky");
+const stickyList=document.getElementById("stickyList");
+const searchBox=document.getElementById("search");
+
+function ab2hex(buffer){const bytes=new Uint8Array(buffer);return Array.from(bytes).map(b=>b.toString(16).padStart(2,"0")).join("")}
+async function sha256(str){const enc=new TextEncoder();const buf=await crypto.subtle.digest("SHA-256",enc.encode(str));return ab2hex(buf)}
+async function tryUnlock(){
+  const v=passInput.value.trim();
+  if(!v)return;
+  const h=await sha256(v);
+  if(h===PASS_HASH){
+    gate.classList.add("hide");app.classList.remove("hide");renderQuick();selectChapter("index");
+  }else{
+    passInput.value="";passInput.placeholder="Incorrect code";passInput.focus();
+  }
+}
+unlockBtn.addEventListener("click",tryUnlock);
+passInput.addEventListener("keydown",e=>{if(e.key==="Enter")tryUnlock()});
+logoutBtn.addEventListener("click",()=>{location.reload()});
+
+function pill(key,val){return `<span class="pill"><strong>${key}:</strong> ${val}</span>`}
+function stepHtml(txt){return `<div class="step"><div class="chk"></div><p>${txt}</p></div>`}
+function listHtml(arr){return `<div class="list">${arr.map(stepHtml).join("")}</div>`}
+function blockHtml(b){
+  if(b.type==="kv"){return `<div class="kv">${b.items.map(i=>pill(i[0],i[1])).join("")}</div>`}
+  if(b.type==="text"){return `<p style="margin:0">${b.html}</p>`}
+  if(b.type==="quick"){return `<div class="quick-grid">${b.items.map(([t,id])=>`<button class="qbtn" data-goto="${id}">${t}</button>`).join("")}</div>`}
+  return ""
+}
+function makeCard(title,inner,cls=""){return `<div class="card ${cls}"><h3>${title}</h3>${inner}</div>`}
+function sectionNotes(notes){
+  return notes.map(n=>makeCard(n.h,`<div class="list">${n.items.map(x=>`<div class="step"><div class="chk"></div><p>${x}</p></div>`).join("")}</div>`,"half")).join("")
+}
+function rolesHtml(pf,pm){
+  if(!pf&&!pm) return "";
+  return `<div class="grid">
+    <div class="card half"><h3>PF (Pilot Flying)</h3><p style="margin:0">${pf}</p></div>
+    <div class="card half"><h3>PM (Pilot Monitoring)</h3><p style="margin:0">${pm}</p></div>
+  </div>`
+}
+function renderQuick(){
+  const qi=chapters.find(x=>x.id==="index");
+  if(qi){
+    quickDiv.innerHTML=qi.blocks[0].items.map(([t,id])=>`<button class="qbtn" data-goto="${id}">${t}</button>`).join("");
+    quickDiv.querySelectorAll(".qbtn").forEach(b=>b.addEventListener("click",()=>selectChapter(b.getAttribute("data-goto"))));
+  }
+}
+function renderContent(id){
+  const c=chapters.find(x=>x.id===id)||chapters[0];
+  cardsDiv.innerHTML="";
+  sticky.classList.add("hide");
+  stickyList.innerHTML="";
+  if(c.blocks){
+    c.blocks.forEach(b=>{
+      cardsDiv.insertAdjacentHTML("beforeend",makeCard(c.title,blockHtml(b)));
+    });
+  }else{
+    if(c.immediate?.length){
+      sticky.classList.remove("hide");
+      stickyList.innerHTML=c.immediate.map(x=>stepHtml(x)).join("");
+      cardsDiv.insertAdjacentHTML("beforeend",makeCard("Immediate Actions",listHtml(c.immediate)));
+    }
+    if(c.checklist?.length){
+      cardsDiv.insertAdjacentHTML("beforeend",makeCard("Checklist Actions",listHtml(c.checklist)));
+    }
+    if(c.rolesPF||c.rolesPM){
+      cardsDiv.insertAdjacentHTML("beforeend",rolesHtml(c.rolesPF,c.rolesPM));
+    }
+    if(c.notes?.length){
+      cardsDiv.insertAdjacentHTML("beforeend",sectionNotes(c.notes));
+    }
+    const meta=`<div class="kv" style="margin-top:8px">${pill("Chapter",c.title)}${pill("Tags",(c.tags||[]).join(", ")||"—")}</div>`;
+    cardsDiv.insertAdjacentHTML("beforeend",makeCard("Reference",meta,"half"));
+  }
+  attachChecks();
+}
+function attachChecks(){
+  cardsDiv.querySelectorAll(".chk").forEach(el=>{
+    el.addEventListener("click",()=>el.classList.toggle("done"))
+  });
+  stickyList.querySelectorAll(".chk").forEach(el=>{
+    el.addEventListener("click",()=>el.classList.toggle("done"))
+  });
+}
+function selectChapter(id){
+  navBtns().forEach(b=>b.classList.toggle("active",b.getAttribute("data-id")===id));
+  renderContent(id);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>selectChapter(b.getAttribute("data-id"))));
+searchBox.addEventListener("input",()=>{
+  const q=searchBox.value.trim().toLowerCase();
+  document.querySelectorAll(".navbtn").forEach(b=>{
+    const id=b.getAttribute("data-id");
+    const c=chapters.find(x=>x.id===id);
+    const hay=(c.title+" "+(c.tags||[]).join(" ")).toLowerCase();
+    b.style.display=hay.includes(q)?"block":"none";
+  });
+});
+
+renderQuick();
+</script>
+</body>
+</html>
